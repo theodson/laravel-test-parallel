@@ -45,11 +45,11 @@ class ParallelRunner
      * Creates a new test runner instance.
      *
      * @param \ParaTest\Runners\PHPUnit\Options|array            $options
-     * @param \Symfony\Component\Console\Output\OutputInterface $output
+     * @param \Symfony\Component\Console\Output\OutputInterface|null $output
      *
      * @return void
      */
-    public function __construct($options, OutputInterface $output)
+    public function __construct($options, OutputInterface $output = null)
     {
         // Normalize options to ParaTest v1.x Options instance while keeping
         // a plain array for constructing WrapperRunner (which expects array in v1).
@@ -77,7 +77,9 @@ class ParallelRunner
         }
 
         // Always keep an output instance
-        $this->output = $output instanceof ConsoleOutput ? new ParallelConsoleOutput($output) : $output;
+        $this->output = $output instanceof ConsoleOutput
+            ? new ParallelConsoleOutput($output)
+            : ($output ?: new ConsoleOutput());
 
         // ParaTest v1.x WrapperRunner constructor accepts only an array of options
         $this->runner = new WrapperRunner($runnerOpts);
