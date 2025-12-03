@@ -5,14 +5,13 @@ namespace Devinweb\TestParallel;
 use Devinweb\TestParallel\Facades\ParallelTesting;
 use Illuminate\Contracts\Console\Kernel;
 use ParaTest\Runners\PHPUnit\Options;
-use ParaTest\Runners\PHPUnit\RunnerInterface;
 use ParaTest\Runners\PHPUnit\WrapperRunner;
 use RuntimeException;
 use Symfony\Component\Console\Output\ConsoleOutput;
 use Symfony\Component\Console\Output\Output;
 use Symfony\Component\Console\Output\OutputInterface;
 
-class ParallelRunner implements RunnerInterface
+class ParallelRunner
 {
     /**
      * The application resolver callback.
@@ -38,7 +37,7 @@ class ParallelRunner implements RunnerInterface
     /**
      * The original test runner.
      *
-     * @var \ParaTest\Runners\PHPUnit\RunnerInterface
+     * @var \ParaTest\Runners\PHPUnit\WrapperRunner
      */
     protected $runner;
 
