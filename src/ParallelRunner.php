@@ -44,20 +44,43 @@ class ParallelRunner
     /**
      * Creates a new test runner instance.
      *
-     * @param \ParaTest\Runners\PHPUnit\Options                 $options
+     * @param \ParaTest\Runners\PHPUnit\Options|array            $options
      * @param \Symfony\Component\Console\Output\OutputInterface $output
      *
      * @return void
      */
-    public function __construct(Options $options, OutputInterface $output)
+    public function __construct($options, OutputInterface $output)
     {
-        $this->options = $options;
-
-        if ($output instanceof ConsoleOutput) {
-            $this->output = new ParallelConsoleOutput($output);
+        // Normalize options to ParaTest v1.x Options instance while keeping
+        // a plain array for constructing WrapperRunner (which expects array in v1).
+        if (is_array($options)) {
+            $runnerOpts = $options;
+            $this->options = new Options($options);
+        } elseif ($options instanceof Options) {
+            // Build an array compatible with ParaTest v1.x BaseRunner
+            $runnerOpts = [
+                'processes'      => isset($options->processes) ? $options->processes : 5,
+                'path'           => isset($options->path) ? $options->path : '',
+                'phpunit'        => isset($options->phpunit) ? $options->phpunit : null,
+                'functional'     => isset($options->functional) ? $options->functional : false,
+                'stop-on-failure'=> isset($options->stopOnFailure) ? $options->stopOnFailure : false,
+                'runner'         => isset($options->runner) ? $options->runner : 'Runner',
+                'no-test-tokens' => isset($options->noTestTokens) ? $options->noTestTokens : false,
+                'colors'         => isset($options->colors) ? $options->colors : false,
+                'testsuite'      => isset($options->testsuite) ? $options->testsuite : '',
+                'max-batch-size' => isset($options->maxBatchSize) ? $options->maxBatchSize : 0,
+                'filter'         => isset($options->filter) ? $options->filter : null,
+            ];
+            $this->options = $options;
+        } else {
+            throw new \InvalidArgumentException('Invalid options provided to ParallelRunner.');
         }
 
-        $this->runner = new WrapperRunner($options, $this->output);
+        // Always keep an output instance
+        $this->output = $output instanceof ConsoleOutput ? new ParallelConsoleOutput($output) : $output;
+
+        // ParaTest v1.x WrapperRunner constructor accepts only an array of options
+        $this->runner = new WrapperRunner($runnerOpts);
     }
 
     /**
@@ -79,12 +102,12 @@ class ParallelRunner
      */
     public function run()
     {
-        $first_message = "Runing Phpunit in {$this->options->processes()} processes";
+        $first_message = "Runing Phpunit in {$this->getProcesses()} processes";
 
         $this->output->writeln($first_message);
 
         // Handle <php> settings from phpunit.xml when available (PHPUnit 9+). For older PHPUnit versions, skip.
-        if (class_exists('PHPUnit\\TextUI\\XmlConfiguration\\PhpHandler')) {
+        if (class_exists('PHPUnit\\TextUI\\XmlConfiguration\\PhpHandler') && method_exists($this->options, 'configuration')) {
             $handler = new \PHPUnit\TextUI\XmlConfiguration\PhpHandler();
             $configuration = $this->options->configuration();
             if (is_object($configuration) && method_exists($configuration, 'php')) {
@@ -124,7 +147,7 @@ class ParallelRunner
      */
     protected function forEachProcess($callback)
     {
-        collect(range(1, $this->options->processes()))->each(function ($token) use ($callback) {
+        collect(range(1, $this->getProcesses()))->each(function ($token) use ($callback) {
             tap($this->createApplication(), function ($app) use ($callback, $token) {
                 ParallelTesting::resolveTokenUsing(function () use ($token) {
                     return $token;
@@ -133,6 +156,26 @@ class ParallelRunner
                 $callback($app);
             })->flush();
         });
+    }
+
+    /**
+     * Get the number of processes from Options, compatible with ParaTest v1.x and newer.
+     *
+     * @return int
+     */
+    protected function getProcesses()
+    {
+        // Newer Options may expose a processes() accessor; v1.x exposes a property.
+        if (is_object($this->options)) {
+            if (method_exists($this->options, 'processes')) {
+                return (int) $this->options->processes();
+            }
+            if (isset($this->options->processes)) {
+                return (int) $this->options->processes;
+            }
+        }
+
+        return 1;
     }
 
     /**
