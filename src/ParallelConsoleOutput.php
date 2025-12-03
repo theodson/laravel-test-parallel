@@ -4,6 +4,7 @@ namespace Devinweb\TestParallel;
 
 use Illuminate\Support\Str;
 use Symfony\Component\Console\Output\ConsoleOutput;
+use Symfony\Component\Console\Output\Output;
 
 class ParallelConsoleOutput extends ConsoleOutput
 {
@@ -36,7 +37,7 @@ class ParallelConsoleOutput extends ConsoleOutput
         parent::__construct(
             $output->getVerbosity(),
             $output->isDecorated(),
-            $output->getFormatter(),
+            $output->getFormatter()
         );
 
         $this->output = $output;
@@ -51,7 +52,7 @@ class ParallelConsoleOutput extends ConsoleOutput
      *
      * @return void
      */
-    public function write($messages, $newline = false, $options = self::OUTPUT_NORMAL)
+    public function write($messages, $newline = false, $options = Output::OUTPUT_NORMAL)
     {
         $messages = collect($messages)->filter(function ($message) {
             return ! Str::contains($message, $this->ignore);

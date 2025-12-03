@@ -9,30 +9,28 @@ As you may know laravel parallel testing is already available on [laravel v8.x](
 
 It's based on [brianium/paratest](https://github.com/paratestphp/paratest) and implements the same logic that handle the testing command used in laravel, developed by [Nuno Maduro](https://github.com/nunomaduro).
 
-## Requirement
+## Requirements
 
-This package requires
+- PHP >= 7.0
+- Laravel 5.5+ (auto-discovery supported)
+- ParaTest and PHPUnit versions compatible with your PHP version.
 
-```json
-"phpunit/phpunit": "^9.5.1"
+Notes for PHPUnit/ParaTest compatibility:
+
+- For PHP 7.0 projects, use PHPUnit ^6.5 and ParaTest ^1.1.
+- For newer PHP versions (7.3+), you may use PHPUnit ^9.5 and ParaTest ^6.2.
+
+Examples:
+
+```shell
+# PHP 7.0 projects
+composer require --dev phpunit/phpunit:^6.5 brianium/paratest:^1.1
+
+# Newer PHP versions
+composer require --dev phpunit/phpunit:^9.5.1
 ```
 
-To update your phpunit package you can add this dev dependency on your `composer.json`
-
-```json
-{
-    ...
-
-    "require-dev": {
-       ...,
-       "phpunit/phpunit": "^9.5.1"
-   },
-
-   ...
-}
-```
-
-Then remove your `composer.lock` file and tell the composer to install all the dependencies using `composer install`.
+Then remove your `composer.lock` file and tell Composer to install all the dependencies using `composer install`.
 
 ## Installation
 

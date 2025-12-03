@@ -9,10 +9,9 @@ use ParaTest\Runners\PHPUnit\RunnerInterface;
 use ParaTest\Runners\PHPUnit\WrapperRunner;
 use RuntimeException;
 use Symfony\Component\Console\Output\ConsoleOutput;
-use Symfony\Component\Console\Output\Output;
 use Symfony\Component\Console\Output\OutputInterface;
 
-class ParallelRunner implements RunnerInterface
+class ParallelRunnerModern implements RunnerInterface
 {
     /**
      * The application resolver callback.
